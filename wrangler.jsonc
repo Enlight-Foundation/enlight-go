@@ -1,6 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sink",
+  "name": "enlight-go",
+  // Enlight: pin the foundation's Cloudflare account to avoid deploying to the wrong one
+  "account_id": "99435c5c35e892dd881591254fd1415c",
+  // Enlight: the foundation's short-link domain
+  "routes": [
+    { "pattern": "go.enlight.ac", "custom_domain": true }
+  ],
   "main": ".output/server/index.mjs",
   "assets": {
     "binding": "ASSETS",
@@ -17,14 +23,12 @@
     "logs": {
       "enabled": true
     },
+    // Enlight: logs only, no traces
     "traces": {
-      "enabled": true
+      "enabled": false
     }
   },
-  "ai": {
-    "binding": "AI",
-    "remote": true
-  },
+  // Enlight: no Workers AI binding (AI buttons return "AI not enabled") to avoid uncapped usage costs
   // Values marked with DEPLOY_* below are placeholders for local/dev.
   // CLI deploy (pnpm deploy:worker / deploy:config) rewrites them into gitignored wrangler.deploy.jsonc.
   // Prefer setting DEPLOY_* in .env or Workers Builds / Pages variables — do not hardcode production IDs here.
@@ -58,7 +62,8 @@
       "bucket_name": "sink" // Override with DEPLOY_R2_BUCKET_NAME
     }
   ],
+  // Enlight: no cron triggers (account rule: nothing that wakes itself up). Back up via D1 Time Travel and dashboard export.
   "triggers": {
-    "crons": ["0 0 * * *"] // Run backup task daily at 00:00 UTC
+    "crons": []
   }
 }

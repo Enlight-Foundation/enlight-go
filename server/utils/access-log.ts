@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { createHash } from 'node:crypto'
 import { parseAcceptLanguage } from 'intl-parse-accept-language'
 import { UAParser } from 'ua-parser-js'
 import {
@@ -107,6 +108,16 @@ export function doubles2logs(doubles: number[]) {
   }, {} as Partial<LogsMap>)
 }
 
+// Enlight: never store raw IPs or full user agents in Analytics Engine.
+// The `ip` blob holds a daily-rotating salted hash (salt = NUXT_SITE_TOKEN + Bangkok date),
+// so unique visitors per day can still be counted but cannot be reversed or linked across days.
+export function anonymousVisitorId(salt: string, ip: string | undefined, userAgent: string): string {
+  if (!ip)
+    return ''
+  const bangkokDate = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  return createHash('sha256').update(`${salt}|${bangkokDate}|${ip}|${userAgent}`).digest('hex').slice(0, 16)
+}
+
 function getCountryName(country?: string): string {
   try {
     return new Intl.DisplayNames(['en'], { type: 'region' }).of(country || 'WD') || 'Worldwide'
@@ -142,7 +153,7 @@ export function collectAccessLog(event: H3Event): AccessLogResult | undefined {
     || ['crawler', 'fetcher'].includes(uaInfo?.browser?.type || '')
     || ['spider', 'bot'].includes(uaInfo?.browser?.name?.toLowerCase() || '')
 
-  const { disableBotAccessLog } = useRuntimeConfig(event)
+  const { disableBotAccessLog, siteToken } = useRuntimeConfig(event)
   if (isBot && disableBotAccessLog) {
     console.log('bot access log disabled:', userAgent)
     return
@@ -152,8 +163,8 @@ export function collectAccessLog(event: H3Event): AccessLogResult | undefined {
   const logs = {
     url: link.url,
     slug: link.slug,
-    ua: userAgent,
-    ip,
+    ua: '',
+    ip: anonymousVisitorId(String(siteToken || ''), ip, userAgent),
     referer,
     country: cf?.country,
     region: `${getFlag(cf?.country)} ${[cf?.region, countryName].filter(Boolean).join(',')}`,
