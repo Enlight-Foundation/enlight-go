@@ -35,23 +35,20 @@ NUXT_PUBLIC_HOME_URL=https://enlight.ac
 
 Build command `pnpm build` · Deploy command `pnpm deploy:worker` (รัน migration D1 แล้ว deploy)
 
-### ตัวแปรของ Worker (Settings → Variables and Secrets)
+### ตัวแปรของ Worker
 
-| ชื่อ | ชนิด | ค่า |
-|---|---|---|
-| `NUXT_SITE_TOKEN` | Secret | รหัสสำรองของแอดมิน + salt ของรหัสผู้เข้าชม (เปลี่ยนแล้วสถิติ "ผู้เข้าชมไม่ซ้ำ" ของวันนั้นนับใหม่) |
-| `NUXT_CF_ACCOUNT_ID` | Variable | `99435c5c35e892dd881591254fd1415c` |
-| `NUXT_CF_API_TOKEN` | Secret | กุญแจ Account Analytics: Read อย่างเดียว |
-| `NUXT_CF_ACCESS_TEAM_DOMAIN` | Variable | `https://<ทีม>.cloudflareaccess.com` |
-| `NUXT_CF_ACCESS_AUD` | Variable | AUD ของแอป Access `go.enlight.ac` |
-| `NUXT_REDIRECT_STATUS_CODE` | Variable | `302` — QR ต้องเปลี่ยนปลายทางได้ (301 เบราว์เซอร์จำถาวร) |
-| `NUXT_PUBLIC_HOME_URL` | Variable | `https://enlight.ac` — หน้าแรกพาไปเว็บมูลนิธิแทนหน้าแนะนำ Sink |
-| `NUXT_DISABLE_BOT_ACCESS_LOG` | Variable | `true` |
-| `NUXT_DISABLE_AUTO_BACKUP` | Variable | `true` |
+ค่าที่ไม่ลับอยู่ใน `vars` ของ `wrangler.jsonc` (ขึ้นไปกับทุก deploy): `NUXT_REDIRECT_STATUS_CODE=302` (QR ต้องเปลี่ยนปลายทางได้ · 301 เบราว์เซอร์จำถาวร) · `NUXT_PUBLIC_HOME_URL` · `NUXT_DISABLE_BOT_ACCESS_LOG` · `NUXT_DISABLE_AUTO_BACKUP` · `NUXT_CF_ACCOUNT_ID` · `NUXT_CF_ACCESS_TEAM_DOMAIN` · `NUXT_CF_ACCESS_AUD`
+
+ค่าลับตั้งที่ Worker `enlight-go` → Settings → Variables and Secrets เท่านั้น (`keep_vars: true` กัน deploy ลบทิ้ง):
+
+| ชื่อ | ค่า |
+|---|---|
+| `NUXT_SITE_TOKEN` | สุ่มตอนติดตั้งโดยไม่มีใครเห็นค่า · ใช้เป็น salt ของรหัสผู้เข้าชม (แอดมินล็อกอินผ่าน Access ไม่ใช้รหัสนี้) · เปลี่ยน = สถิติ "ผู้เข้าชมไม่ซ้ำ" ของวันนั้นนับใหม่ |
+| `NUXT_CF_API_TOKEN` | Account API token `enlight-go · Account Analytics Read` (Account Analytics: Read อย่างเดียว) |
 
 ### Cloudflare Access
 
-แอป self-hosted `go.enlight.ac` กันเส้นทาง `/dashboard` · `/api` · `/_docs` · ลิงก์ย่อ `/<slug>` เปิดสาธารณะ · Cookie Path ไม่จำกัด
+แอป self-hosted `go.enlight.ac · แอดมินลิงก์ย่อ` กันเส้นทาง `/dashboard` · `/api` · `/_docs` · ลิงก์ย่อ `/<slug>` เปิดสาธารณะ · ล็อกอินด้วยปุ่ม Google ตัวเดียวกับเว็บคลังคู่มือเกม · ตั๋ว 24 ชั่วโมง · policy `แอดมินลิงก์ย่อ` (Include → Emails รายคน) · Cookie Path ไม่จำกัด · Worker ตรวจ JWT ของ Access ซ้ำอีกชั้นที่ `/api/*`
 
 ## อัปเกรดเป็นรุ่นใหม่ของ Sink
 

@@ -18,6 +18,19 @@
     "nodejs_compat"
   ],
   "keep_vars": true,
+  // Enlight: non-secret runtime settings live here so every deploy carries them.
+  // Secrets (NUXT_SITE_TOKEN, NUXT_CF_API_TOKEN) are Worker secrets, never in this public repo.
+  "vars": {
+    // 302, not 301: browsers cache 301 forever, and printed QR codes must be able to change destination
+    "NUXT_REDIRECT_STATUS_CODE": "302",
+    "NUXT_PUBLIC_HOME_URL": "https://enlight.ac",
+    "NUXT_DISABLE_BOT_ACCESS_LOG": "true",
+    "NUXT_DISABLE_AUTO_BACKUP": "true",
+    "NUXT_CF_ACCOUNT_ID": "99435c5c35e892dd881591254fd1415c",
+    // Cloudflare Access app "go.enlight.ac" guards /dashboard, /api and /_docs
+    "NUXT_CF_ACCESS_TEAM_DOMAIN": "https://enlight-foundation.cloudflareaccess.com",
+    "NUXT_CF_ACCESS_AUD": "092bed7c780180a2f224b918e840fe64855a73a029847363d3c638ac850c6e79"
+  },
   "upload_source_maps": true,
   "observability": {
     "logs": {
